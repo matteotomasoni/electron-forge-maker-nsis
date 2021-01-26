@@ -1,0 +1,23 @@
+{
+  "name": "electron-forge-maker-nsis",
+  "version": "6.0.0-beta.54",
+  "description": "NSIS maker for Electron Forge",
+  "author": "Matteo Tomasoni",
+  "license": "MIT",
+  "main": "dist/MakerNSIS.js",
+  "typings": "dist/MakerNSIS.d.ts",
+  "devDependencies": {
+    "chai": "4.2.0",
+    "mocha": "^6.2.2"
+  },
+  "engines": {
+    "node": ">= 8.0"
+  },
+  "dependencies": {
+    "@electron-forge/maker-base": "6.0.0-beta.54",
+    "@electron-forge/shared-types": "6.0.0-beta.54",
+    "fs-extra": "^8.1.0",
+    "makensis": "^0.23.3",
+    "path": "^0.12.7"
+  }
+}
