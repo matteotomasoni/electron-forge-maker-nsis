@@ -3,12 +3,6 @@
 ;Written by Joost Verburg
 ;Documentation: https://nsis.sourceforge.io/Docs/Modern%20UI/Readme.html
 
-  !define MUI_PRODUCT "%%NAME%%"
-  !define MUI_FILE "%%FILE%%"
-  !define MUI_VERSION "%%VERSION%%"
-  !define MUI_AUTHOR "%%AUTHOR%%"
-  !define MUI_IMAGE "%%IMAGE%%"
-  !define MUI_ICON "%%ICON%%"
   CRCCheck On
 
   SetCompressor /SOLID /FINAL lzma
@@ -38,6 +32,8 @@
   ;!define MUI_HEADERIMAGE_BITMAP "${MUI_IMAGE}" ; optional
   !define MUI_ABORTWARNING
 
+  !define MUI_FINISHPAGE_RUN "${MUI_PRODUCT}.exe"
+
 ;--------------------------------
 ;Pages
 
@@ -46,7 +42,7 @@
   !insertmacro MUI_PAGE_COMPONENTS
   !insertmacro MUI_PAGE_DIRECTORY
   !insertmacro MUI_PAGE_INSTFILES
-  ;!insertmacro MUI_PAGE_FINISH
+  !insertmacro MUI_PAGE_FINISH
   
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
@@ -54,9 +50,12 @@
 ;--------------------------------
 ;Languages
  
-  !insertmacro MUI_LANGUAGE "English"
+  !insertmacro MUI_LANGUAGE "English" ; The first language is the default language
+  !insertmacro MUI_LANGUAGE "French"
+  !insertmacro MUI_LANGUAGE "German"
+  !insertmacro MUI_LANGUAGE "Spanish"
   !insertmacro MUI_LANGUAGE "Italian"
-  ;TODO: Aggiungere tutte le lingue supportate dall'app
+  !insertmacro MUI_LANGUAGE "Japanese"
 
 ;--------------------------------
 ;Installer Sections
@@ -65,10 +64,11 @@
 
 Section "${MUI_PRODUCT}"
   SectionIn 1
+  SectionIn RO ;Used to grey-out the section
   
   ;program folder
   SetOutPath "$INSTDIR"
-  File /r "%%FILEDIR%%\*.*"
+  File /r ".\*.*"
   
   ;shortcuts
   SetOutPath "$INSTDIR" ;va a finire nel campo "Da:" del link
@@ -89,10 +89,10 @@ Section "${MUI_PRODUCT}"
 
 SectionEnd
 
-Section "Create desktop shortcut"
-  SectionIn 1
+; unselected because it is /o
+Section /o "Create desktop shortcut"
   SetOutPath "$INSTDIR" ;va a finire nel campo "Da:" del link
-  CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "$INSTDIR\${MUI_PRODUCT}.exe"  
+  CreateShortCut "$DESKTOP\${MUI_PRODUCT}.lnk" "$INSTDIR\${MUI_PRODUCT}.exe"
 SectionEnd
 
 
@@ -130,7 +130,8 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\${MUI_AUTHOR}\${MUI_PRODUCT}\${MUI_PRODUCT}.lnk"
   Delete "$SMPROGRAMS\${MUI_AUTHOR}\${MUI_PRODUCT}\Uninstall ${MUI_PRODUCT}.lnk"  
   RMDir  "$SMPROGRAMS\${MUI_AUTHOR}\${MUI_PRODUCT}"
-  RMDir  "$SMPROGRAMS\${MUI_AUTHOR}"
+  ;RMDir  "$SMPROGRAMS\${MUI_AUTHOR}"
+  Delete "$DESKTOP\${MUI_PRODUCT}.lnk"
 
   ;uninstaller
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}"

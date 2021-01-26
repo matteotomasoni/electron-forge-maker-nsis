@@ -13,6 +13,8 @@ var _path = _interopRequireDefault(require("path"));
 
 var _fs = _interopRequireDefault(require("fs"));
 
+var _fs_extra = _interopRequireDefault(require("fs-extra"));
+
 var _makensis = _interopRequireDefault(require("makensis"));
 
 var _util = require("util");
@@ -48,13 +50,11 @@ class MakerNSIS extends _makerBase.default {
     targetPlatform
   }) {
 
+    const nsisMakeDir = _path.default.resolve(makeDir, 'nsis');
     const originalTemplatePath = _path.default.resolve(__dirname, 'template.nsi');
-    const templateTempPath = _path.default.resolve(makeDir, '_template.nsi');
+    const templateTempPath = _path.default.resolve(nsisMakeDir, '_template.nsi');
     const exeName = `${appName}-${packageJSON.version}-Setup.exe`
-    const exeDir = _path.default.resolve(dir)
-    const outputExePath = _path.default.resolve(makeDir, exeName);
-    const author = typeof packageJSON.author == 'object' ? packageJSON.author.name : packageJSON.author
-    const version = packageJSON.version
+    const outputExePath = _path.default.resolve(nsisMakeDir, exeName);
 
     const nsisOptions = _objectSpread({
       // 'version-string': {
@@ -72,31 +72,16 @@ class MakerNSIS extends _makerBase.default {
 
     await this.ensureFile(outputExePath);
 
-    let template = _fs.default.readFileSync(originalTemplatePath, {encoding: 'utf8'})
+    _fs_extra.default.copySync(dir, nsisMakeDir)
+    _fs.default.copyFileSync(originalTemplatePath, templateTempPath)
 
-    // replace all
-    let replaces = [
-      ["%%NAME%%", appName],
-      ["%%FILE%%", outputExePath],
-      ["%%FILEDIR%%", exeDir],
-      ["%%VERSION%%", version],
-      ["%%AUTHOR%%", author],
-      ["%%IMAGE%%", this.config.image ?? ''],
-      ["%%ICON%%", this.config.icon ?? ''],
-    ]
-    for (const couple of replaces) {
-      template = template.replace(new RegExp(couple[0],"g"), couple[1])
+    let output = _makensis.compileSync(templateTempPath, nsisOptions)
+    // console.log('Compiler output:', output);
+    // console.log(output.stdout)
+    console.error(output.stderr)
+    if(output.status !== 0) {
+      throw "Error compiling NSIS!"
     }
-
-    _fs.default.writeFileSync(templateTempPath, template);
-
-    await _makensis.compile(templateTempPath, nsisOptions)
-    .then((output) => {
-        console.log('Compiler output:', output);
-    })
-    .catch((error) => {
-        console.error(error);
-    });
 
     return [outputExePath];
   }
