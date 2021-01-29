@@ -61,7 +61,7 @@ class MakerNSIS extends _makerBase.default {
         MUI_AUTHOR: packageJSON.author.name || packageJSON.author,
     });
 
-    const nsisOptionsDefine = _objectSpread({
+    const nsisOptions = _objectSpread({
       // 'version-string': {
       //   'ProductName': appName,
       //   'FileDescription': packageJSON.description || appName,
