@@ -50,11 +50,10 @@ class MakerNSIS extends _makerBase.default {
     targetPlatform
   }) {
 
-    const nsisMakeDir = _path.default.resolve(makeDir, 'nsis');
     const originalTemplatePath = _path.default.resolve(__dirname, 'template.nsi');
-    const templateTempPath = _path.default.resolve(nsisMakeDir, '_template.nsi');
-    const exeName = `${appName}-${packageJSON.version}-Setup.exe`
-    const outputExePath = _path.default.resolve(nsisMakeDir, exeName);
+    const templateTempPath = _path.default.resolve(dir, '_template.nsi');
+    const exeName = `${appName}-${packageJSON.version}-SystemSetup.exe`
+    const outputExePath = _path.default.resolve(makeDir, 'nsis', exeName);
 
     const nsisOptions = _objectSpread({
       // 'version-string': {
@@ -68,20 +67,27 @@ class MakerNSIS extends _makerBase.default {
       // 'file-version': packageJSON.version,
       // 'product-version': packageJSON.version,
     }, this.config.nsisOptions, {
+      define: {
+        MUI_PRODUCT: appName,
+        MUI_FILE: exeName,
+        MUI_VERSION: packageJSON.version,
+        MUI_AUTHOR: packageJSON.author.name || packageJSON.author,
+      }
     });
 
     await this.ensureFile(outputExePath);
 
-    _fs_extra.default.copySync(dir, nsisMakeDir)
     _fs.default.copyFileSync(originalTemplatePath, templateTempPath)
 
     let output = _makensis.compileSync(templateTempPath, nsisOptions)
-    // console.log('Compiler output:', output);
-    // console.log(output.stdout)
     console.error(output.stderr)
+    
     if(output.status !== 0) {
+      console.log(output.stdout)
       throw "Error compiling NSIS!"
     }
+
+    _fs.default.unlinkSync(templateTempPath)
 
     return [outputExePath];
   }
