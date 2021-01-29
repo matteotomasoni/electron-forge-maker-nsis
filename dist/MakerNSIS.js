@@ -52,8 +52,7 @@ class MakerNSIS extends _makerBase.default {
 
     const originalTemplatePath = _path.default.resolve(__dirname, 'template.nsi');
     const templateTempPath = _path.default.resolve(dir, '_template.nsi');
-    const exeName = `${appName}-${packageJSON.version}-SystemSetup.exe`
-    const outputExePath = _path.default.resolve(makeDir, 'nsis', exeName);
+    const outputExePath = _path.default.resolve(makeDir, 'nsis', `${appName}-${packageJSON.version}-SystemSetup.exe`);
 
     const nsisOptions = _objectSpread({
       // 'version-string': {
@@ -69,7 +68,7 @@ class MakerNSIS extends _makerBase.default {
     }, this.config.nsisOptions, {
       define: {
         MUI_PRODUCT: appName,
-        MUI_FILE: exeName,
+        MUI_FILE: outputExePath,
         MUI_VERSION: packageJSON.version,
         MUI_AUTHOR: packageJSON.author.name || packageJSON.author,
       }
@@ -81,7 +80,7 @@ class MakerNSIS extends _makerBase.default {
 
     let output = _makensis.compileSync(templateTempPath, nsisOptions)
     console.error(output.stderr)
-    
+
     if(output.status !== 0) {
       console.log(output.stdout)
       throw "Error compiling NSIS!"
