@@ -54,7 +54,14 @@ class MakerNSIS extends _makerBase.default {
     const templateTempPath = _path.default.resolve(dir, '_template.nsi');
     const outputExePath = _path.default.resolve(makeDir, 'nsis', `${appName}-${packageJSON.version}-SystemSetup.exe`);
 
-    const nsisOptions = _objectSpread({
+    const nsisOptionsDefine = _objectSpread(this.config.nsisOptions.define, {
+        MUI_PRODUCT: appName,
+        MUI_FILE: outputExePath,
+        MUI_VERSION: packageJSON.version,
+        MUI_AUTHOR: packageJSON.author.name || packageJSON.author,
+    });
+
+    const nsisOptionsDefine = _objectSpread({
       // 'version-string': {
       //   'ProductName': appName,
       //   'FileDescription': packageJSON.description || appName,
@@ -66,12 +73,7 @@ class MakerNSIS extends _makerBase.default {
       // 'file-version': packageJSON.version,
       // 'product-version': packageJSON.version,
     }, this.config.nsisOptions, {
-      define: {
-        MUI_PRODUCT: appName,
-        MUI_FILE: outputExePath,
-        MUI_VERSION: packageJSON.version,
-        MUI_AUTHOR: packageJSON.author.name || packageJSON.author,
-      }
+      define: nsisOptionsDefine
     });
 
     await this.ensureFile(outputExePath);
