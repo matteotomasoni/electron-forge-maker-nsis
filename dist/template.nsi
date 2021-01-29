@@ -68,7 +68,7 @@ Section "${MUI_PRODUCT}"
   
   ;program folder
   SetOutPath "$INSTDIR"
-  File /r ".\*.*"
+  File /r /x "template.nsi" ".\*.*"
   
   ;shortcuts
   SetOutPath "$INSTDIR" ;va a finire nel campo "Da:" del link

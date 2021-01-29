@@ -51,7 +51,7 @@ class MakerNSIS extends _makerBase.default {
   }) {
 
     const originalTemplatePath = _path.default.resolve(__dirname, 'template.nsi');
-    const templateTempPath = _path.default.resolve(dir, '_template.nsi');
+    const templateTempPath = _path.default.resolve(dir, 'template.nsi');
     const exeName = this.config.name || `${appName}-${packageJSON.version}-SystemSetup.exe`
     const outputExePath = _path.default.resolve(makeDir, 'nsis', exeName);
 
