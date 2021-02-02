@@ -14,6 +14,9 @@
 ;--------------------------------
 ;General
 
+  ;Require admin rights on NT6+ (When UAC is turned on)
+  RequestExecutionLevel ${EXECUTION_LEVEL}
+
   ;Name and file
   Name "${MUI_PRODUCT}"
   OutFile "${MUI_FILE}"

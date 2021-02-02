@@ -13,11 +13,7 @@ var _path = _interopRequireDefault(require("path"));
 
 var _fs = _interopRequireDefault(require("fs"));
 
-var _fs_extra = _interopRequireDefault(require("fs-extra"));
-
 var _makensis = _interopRequireDefault(require("makensis"));
-
-var _util = require("util");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -52,10 +48,13 @@ class MakerNSIS extends _makerBase.default {
 
     const originalTemplatePath = _path.default.resolve(__dirname, 'template.nsi');
     const templateTempPath = _path.default.resolve(dir, 'template.nsi');
-    const exeName = this.config.name || `${appName}-${packageJSON.version}-SystemSetup.exe`
+    const isUser = this.config.nsisOptions.define.EXECUTION_LEVEL == 'user' || false
+    const exeName = this.config.name || `${appName}-${packageJSON.version}-${isUser ? 'User' : 'Admin'}Setup.exe`
     const outputExePath = _path.default.resolve(makeDir, 'nsis', exeName);
 
-    const nsisOptionsDefine = _objectSpread(this.config.nsisOptions.define, {
+    const nsisOptionsDefine = _objectSpread({
+        EXECUTION_LEVEL: 'admin',
+      }, this.config.nsisOptions.define, {
         MUI_PRODUCT: appName,
         MUI_FILE: outputExePath,
         MUI_VERSION: packageJSON.version,
