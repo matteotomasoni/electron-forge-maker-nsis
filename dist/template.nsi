@@ -71,7 +71,9 @@ Section "${MUI_PRODUCT}"
   
   ;program folder
   SetOutPath "$INSTDIR"
-  File /r /x "template.nsi" ".\*.*"
+  RMDir /r "$INSTDIR"
+  CreateDirectory "$INSTDIR"
+  File /r /x "*.nsi" ".\*.*"
   
   ;shortcuts
   SetOutPath "$INSTDIR" ;va a finire nel campo "Da:" del link
@@ -117,23 +119,11 @@ SectionEnd
 Section "Uninstall"
 
   ;program folder
-  Delete "$INSTDIR\${MUI_PRODUCT}.exe"
-  Delete "$INSTDIR\SglW32.dll"
-  Delete "$INSTDIR\SettingsManager.exe"
-  Delete "$INSTDIR\Machines\*.*"  
-  RMDir  "$INSTDIR\Machines"
-  Delete "$INSTDIR\Languages\*.*"  
-  RMDir  "$INSTDIR\Languages"
-  Delete "$INSTDIR\Palettes\*.*"  
-  RMDir  "$INSTDIR\Palettes"
-  Delete "$INSTDIR\Uninstall.exe"
-  RMDir "$INSTDIR"
+  RMDir /r "$INSTDIR"
 
   ;shortcuts
-  Delete "$SMPROGRAMS\${MUI_AUTHOR}\${MUI_PRODUCT}\${MUI_PRODUCT}.lnk"
-  Delete "$SMPROGRAMS\${MUI_AUTHOR}\${MUI_PRODUCT}\Uninstall ${MUI_PRODUCT}.lnk"  
-  RMDir  "$SMPROGRAMS\${MUI_AUTHOR}\${MUI_PRODUCT}"
-  ;RMDir  "$SMPROGRAMS\${MUI_AUTHOR}"
+  RMDir /r "$SMPROGRAMS\${MUI_AUTHOR}\${MUI_PRODUCT}"
+  RMDir "$SMPROGRAMS\${MUI_AUTHOR}"
   Delete "$DESKTOP\${MUI_PRODUCT}.lnk"
 
   ;uninstaller
