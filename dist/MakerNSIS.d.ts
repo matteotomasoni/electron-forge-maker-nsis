@@ -1,6 +1,15 @@
 import MakerBase, { MakerOptions } from '@electron-forge/maker-base';
 import { ForgePlatform } from '@electron-forge/shared-types';
-export declare type MakerNSISConfig = {};
+export declare type MakerNSISConfig = {
+    name: string;
+    nsisOptions: NsisOptions;
+};
+export declare type NsisOptions = {
+    define: Define;
+};
+export declare type Define = {
+    [key: string]: string;
+};
 export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     name: string;
     defaultPlatforms: ForgePlatform[];
