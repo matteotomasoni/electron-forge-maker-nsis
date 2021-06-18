@@ -1,8 +1,10 @@
 import MakerBase, { MakerOptions } from '@electron-forge/maker-base';
 import { ForgePlatform } from '@electron-forge/shared-types';
+import * as signtool from 'signtool';
 export declare type MakerNSISConfig = {
     name: string;
     nsisOptions: NsisOptions;
+    signOptions: signtool.SignOptions | false;
 };
 export declare type NsisOptions = {
     define: Define;

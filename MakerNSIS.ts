@@ -4,11 +4,13 @@ import { ForgePlatform } from '@electron-forge/shared-types';
 import path from 'path';
 import fs from 'fs';
 // @ts-ignore
-const NSIS = require('makensis');
+import * as NSIS from 'makensis';
+import * as signtool from 'signtool';
 
 export type MakerNSISConfig = {
   name:string,
   nsisOptions:NsisOptions,
+  signOptions:signtool.SignOptions|false,
 };
 
 export type NsisOptions = {
@@ -70,6 +72,10 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     }
 
     fs.unlinkSync(templateTempPath)
+
+    if(this.config.hasOwnProperty('signOptions') && this.config.signOptions !== false) {
+      await signtool.sign(outputExePath, this.config.signOptions)
+    }
     
     return [outputExePath];
   }
