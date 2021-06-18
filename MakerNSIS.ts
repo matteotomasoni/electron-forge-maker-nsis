@@ -4,7 +4,7 @@ import { ForgePlatform } from '@electron-forge/shared-types';
 import path from 'path';
 import fs from 'fs';
 // @ts-ignore
-import NSIS from 'makensis';
+const NSIS = require('makensis');
 
 export type MakerNSISConfig = {
   name:string,

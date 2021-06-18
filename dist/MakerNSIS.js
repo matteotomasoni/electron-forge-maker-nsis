@@ -16,7 +16,7 @@ const maker_base_1 = __importDefault(require("@electron-forge/maker-base"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 // @ts-ignore
-const makensis_1 = __importDefault(require("makensis"));
+const NSIS = require('makensis');
 class MakerNSIS extends maker_base_1.default {
     constructor() {
         super(...arguments);
@@ -37,7 +37,7 @@ class MakerNSIS extends maker_base_1.default {
             const nsisOptions = Object.assign(Object.assign({}, this.config.nsisOptions), { define: nsisOptionsDefine });
             yield this.ensureFile(outputExePath);
             fs_1.default.copyFileSync(originalTemplatePath, templateTempPath);
-            let output = yield makensis_1.default.compile(templateTempPath, nsisOptions);
+            let output = yield NSIS.compile(templateTempPath, nsisOptions);
             if (output.status !== 0) {
                 console.log(output.stdout);
                 throw "Error compiling NSIS!";
