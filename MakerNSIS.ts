@@ -6,11 +6,13 @@ import fs from 'fs';
 // @ts-ignore
 import * as NSIS from 'makensis';
 import * as signtool from 'signtool';
+import readdirp from 'readdirp';
 
 export type MakerNSISConfig = {
   name:string,
   nsisOptions:NsisOptions,
-  signOptions:signtool.SignOptions|false,
+  signOptions:signtool.SignOptions|undefined,
+  signIncludedExecutables:boolean,
 };
 
 export type NsisOptions = {
@@ -22,7 +24,6 @@ export type Define = {
   [key:string]:string,
 };
 
-  
 
 export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
   name = 'nsis';
@@ -65,6 +66,24 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
 
     fs.copyFileSync(originalTemplatePath, templateTempPath)
 
+    // Sign all the included executables
+    if(typeof this.config.signOptions !== 'undefined' && this.config.signIncludedExecutables === true) {
+      const readdirpOptions = {
+        fileFilter: ["*.exe", "*.dll"],
+        depth: 10,
+      }
+      const files = await readdirp.promise(dir, readdirpOptions)
+      for await (const item of files) {
+        // If the verify fails, we sign the file
+        try{
+          await signtool.verify(item.fullPath, {defaultAuthPolicy:true})
+        }
+        catch(err) {
+          await signtool.sign(item.fullPath, this.config.signOptions)
+        }
+      }
+    }
+
     let output = await NSIS.compile(templateTempPath, nsisOptions)
     if(output.status !== 0) {
       console.log(output.stdout)
@@ -73,7 +92,8 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
 
     fs.unlinkSync(templateTempPath)
 
-    if(this.config.hasOwnProperty('signOptions') && this.config.signOptions !== false) {
+    // Sign the output executable
+    if(typeof this.config.signOptions !== 'undefined') {
       await signtool.sign(outputExePath, this.config.signOptions)
     }
     

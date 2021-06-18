@@ -4,7 +4,8 @@ import * as signtool from 'signtool';
 export declare type MakerNSISConfig = {
     name: string;
     nsisOptions: NsisOptions;
-    signOptions: signtool.SignOptions | false;
+    signOptions: signtool.SignOptions | undefined;
+    signIncludedExecutables: boolean;
 };
 export declare type NsisOptions = {
     define: Define;

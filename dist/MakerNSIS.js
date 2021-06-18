@@ -27,6 +27,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -37,6 +44,7 @@ const fs_1 = __importDefault(require("fs"));
 // @ts-ignore
 const NSIS = __importStar(require("makensis"));
 const signtool = __importStar(require("signtool"));
+const readdirp_1 = __importDefault(require("readdirp"));
 class MakerNSIS extends maker_base_1.default {
     constructor() {
         super(...arguments);
@@ -47,6 +55,7 @@ class MakerNSIS extends maker_base_1.default {
         return true;
     }
     make({ dir, makeDir, appName, packageJSON, targetArch, targetPlatform, }) {
+        var e_1, _a;
         return __awaiter(this, void 0, void 0, function* () {
             const originalTemplatePath = path_1.default.resolve(__dirname, 'template.nsi');
             const templateTempPath = path_1.default.resolve(dir, 'template.nsi');
@@ -57,13 +66,41 @@ class MakerNSIS extends maker_base_1.default {
             const nsisOptions = Object.assign(Object.assign({}, this.config.nsisOptions), { define: nsisOptionsDefine });
             yield this.ensureFile(outputExePath);
             fs_1.default.copyFileSync(originalTemplatePath, templateTempPath);
+            // Sign all the included executables
+            if (typeof this.config.signOptions !== 'undefined' && this.config.signIncludedExecutables === true) {
+                const readdirpOptions = {
+                    fileFilter: ["*.exe", "*.dll"],
+                    depth: 10,
+                };
+                const files = yield readdirp_1.default.promise(dir, readdirpOptions);
+                try {
+                    for (var files_1 = __asyncValues(files), files_1_1; files_1_1 = yield files_1.next(), !files_1_1.done;) {
+                        const item = files_1_1.value;
+                        // If the verify fails, we sign the file
+                        try {
+                            yield signtool.verify(item.fullPath, { defaultAuthPolicy: true });
+                        }
+                        catch (err) {
+                            yield signtool.sign(item.fullPath, this.config.signOptions);
+                        }
+                    }
+                }
+                catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                finally {
+                    try {
+                        if (files_1_1 && !files_1_1.done && (_a = files_1.return)) yield _a.call(files_1);
+                    }
+                    finally { if (e_1) throw e_1.error; }
+                }
+            }
             let output = yield NSIS.compile(templateTempPath, nsisOptions);
             if (output.status !== 0) {
                 console.log(output.stdout);
                 throw "Error compiling NSIS!";
             }
             fs_1.default.unlinkSync(templateTempPath);
-            if (this.config.hasOwnProperty('signOptions') && this.config.signOptions !== false) {
+            // Sign the output executable
+            if (typeof this.config.signOptions !== 'undefined') {
                 yield signtool.sign(outputExePath, this.config.signOptions);
             }
             return [outputExePath];
