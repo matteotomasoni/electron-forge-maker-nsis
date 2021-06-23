@@ -141,6 +141,8 @@ SectionEnd
 ;--------------------------------
 ;Uninstaller Section
 
+SilentUnInstall silent
+
 !ifdef INNER
 Section "Uninstall"
  
