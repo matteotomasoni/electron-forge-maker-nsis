@@ -49,6 +49,9 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     const outputExePath = path.resolve(makeDir, 'nsis', exeName);
     const outputTmpInstallerExePath = path.resolve(makeDir, 'nsis', 'TempInstaller.exe');
     const outputTmpUninstallerExePath = path.resolve(makeDir, 'nsis', 'Uninstall.exe');
+    const templateName = 'templateForSignature.nsi'
+    const originalTemplatePath = path.resolve(__dirname, templateName)
+    const templateTempPath = path.resolve(dir, templateName)
 
     const nsisOptionsDefine : Define = {
       EXECUTION_LEVEL: 'admin',
@@ -66,10 +69,6 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
       define: nsisOptionsDefine,
     };
     await this.ensureFile(outputExePath);
-
-    const templateName =  typeof this.config.signOptions !== 'undefined' ? 'templateForSignature.nsi' : 'template.nsi'
-    const originalTemplatePath = path.resolve(__dirname, templateName);
-    const templateTempPath = path.resolve(dir, templateName);
 
     fs.copyFileSync(originalTemplatePath, templateTempPath)
 
@@ -91,38 +90,36 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
       }
     }
 
-    // generate & sign the uninstaller
-    if(typeof this.config.signOptions !== 'undefined') {
-      const nsisUninstallerOptions : NsisOptions = JSON.parse(JSON.stringify(nsisOptions))
-      nsisUninstallerOptions.define.INNER = "1"
+    // generate the uninstaller
+    const nsisUninstallerOptions : NsisOptions = JSON.parse(JSON.stringify(nsisOptions))
+    nsisUninstallerOptions.define.INNER = "1"
 
-      // This writes a temp installer for us which, when
-      // it is invoked, will just write the uninstaller to some location, and then exit.
-      let output = await NSIS.compile(templateTempPath, nsisUninstallerOptions)
-      if(output.status !== 0) {
-        console.log(output.stdout)
-        throw "Error compiling uninstaller NSIS!"
-      }
-
-      // run the installer
-      try{
-        execSync(`set __COMPAT_LAYER=RunAsInvoker&"${outputTmpInstallerExePath}"`)
-      }
-      catch(err) {
-        // ignore the error: since it calls quit the return value isn't zero.
-      }
-
-      // Sign the uninstaller
-      if(typeof this.config.signOptions !== 'undefined') {
-        await signtool.sign(outputTmpUninstallerExePath, this.config.signOptions)
-      }
-
-      // remove the temp installer
-      fs.unlinkSync(outputTmpInstallerExePath)
+    // This writes a temp installer for us which, when
+    // it is invoked, will just write the uninstaller to some location, and then exit.
+    let output = await NSIS.compile(templateTempPath, nsisUninstallerOptions)
+    if(output.status !== 0) {
+      console.log(output.stdout)
+      throw "Error compiling uninstaller NSIS!"
     }
 
-    // generate the installer
-    let output = await NSIS.compile(templateTempPath, nsisOptions)
+    // run the temp installer
+    try{
+      execSync(`set __COMPAT_LAYER=RunAsInvoker&"${outputTmpInstallerExePath}"`)
+    }
+    catch(err) {
+      // ignore the error: since it calls quit the return value isn't zero.
+    }
+
+    // Optional: Sign the uninstaller
+    if(typeof this.config.signOptions !== 'undefined') {
+      await signtool.sign(outputTmpUninstallerExePath, this.config.signOptions)
+    }
+
+    // remove the temp installer
+    fs.unlinkSync(outputTmpInstallerExePath)
+
+    // generate the real installer
+    output = await NSIS.compile(templateTempPath, nsisOptions)
     if(output.status !== 0) {
       console.log(output.stdout)
       throw "Error compiling NSIS!"
@@ -130,7 +127,7 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
 
     fs.unlinkSync(templateTempPath)
 
-    // Sign the installer
+    // Optional: Sign the installer
     if(typeof this.config.signOptions !== 'undefined') {
       await signtool.sign(outputExePath, this.config.signOptions)
     }

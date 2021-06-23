@@ -63,12 +63,12 @@ class MakerNSIS extends maker_base_1.default {
             const outputExePath = path_1.default.resolve(makeDir, 'nsis', exeName);
             const outputTmpInstallerExePath = path_1.default.resolve(makeDir, 'nsis', 'TempInstaller.exe');
             const outputTmpUninstallerExePath = path_1.default.resolve(makeDir, 'nsis', 'Uninstall.exe');
+            const templateName = 'templateForSignature.nsi';
+            const originalTemplatePath = path_1.default.resolve(__dirname, templateName);
+            const templateTempPath = path_1.default.resolve(dir, templateName);
             const nsisOptionsDefine = Object.assign(Object.assign({ EXECUTION_LEVEL: 'admin' }, this.config.nsisOptions.define), { MUI_PRODUCT: appName, MUI_FILE: outputExePath, MUI_VERSION: packageJSON.version, MUI_AUTHOR: packageJSON.author.name || packageJSON.author, TMP_INSTALLER_FILE: outputTmpInstallerExePath, TMP_UNINSTALLER_FILE: outputTmpUninstallerExePath });
             const nsisOptions = Object.assign(Object.assign({}, this.config.nsisOptions), { define: nsisOptionsDefine });
             yield this.ensureFile(outputExePath);
-            const templateName = typeof this.config.signOptions !== 'undefined' ? 'templateForSignature.nsi' : 'template.nsi';
-            const originalTemplatePath = path_1.default.resolve(__dirname, templateName);
-            const templateTempPath = path_1.default.resolve(dir, templateName);
             fs_1.default.copyFileSync(originalTemplatePath, templateTempPath);
             // Sign all the included executables
             if (typeof this.config.signOptions !== 'undefined' && this.config.signIncludedExecutables === true) {
@@ -97,39 +97,37 @@ class MakerNSIS extends maker_base_1.default {
                     finally { if (e_1) throw e_1.error; }
                 }
             }
-            // generate & sign the uninstaller
-            if (typeof this.config.signOptions !== 'undefined') {
-                const nsisUninstallerOptions = JSON.parse(JSON.stringify(nsisOptions));
-                nsisUninstallerOptions.define.INNER = "1";
-                // This writes a temp installer for us which, when
-                // it is invoked, will just write the uninstaller to some location, and then exit.
-                let output = yield NSIS.compile(templateTempPath, nsisUninstallerOptions);
-                if (output.status !== 0) {
-                    console.log(output.stdout);
-                    throw "Error compiling uninstaller NSIS!";
-                }
-                // run the installer
-                try {
-                    child_process_1.execSync(`set __COMPAT_LAYER=RunAsInvoker&"${outputTmpInstallerExePath}"`);
-                }
-                catch (err) {
-                    // ignore the error: since it calls quit the return value isn't zero.
-                }
-                // Sign the uninstaller
-                if (typeof this.config.signOptions !== 'undefined') {
-                    yield signtool.sign(outputTmpUninstallerExePath, this.config.signOptions);
-                }
-                // remove the temp installer
-                fs_1.default.unlinkSync(outputTmpInstallerExePath);
+            // generate the uninstaller
+            const nsisUninstallerOptions = JSON.parse(JSON.stringify(nsisOptions));
+            nsisUninstallerOptions.define.INNER = "1";
+            // This writes a temp installer for us which, when
+            // it is invoked, will just write the uninstaller to some location, and then exit.
+            let output = yield NSIS.compile(templateTempPath, nsisUninstallerOptions);
+            if (output.status !== 0) {
+                console.log(output.stdout);
+                throw "Error compiling uninstaller NSIS!";
             }
-            // generate the installer
-            let output = yield NSIS.compile(templateTempPath, nsisOptions);
+            // run the temp installer
+            try {
+                child_process_1.execSync(`set __COMPAT_LAYER=RunAsInvoker&"${outputTmpInstallerExePath}"`);
+            }
+            catch (err) {
+                // ignore the error: since it calls quit the return value isn't zero.
+            }
+            // Optional: Sign the uninstaller
+            if (typeof this.config.signOptions !== 'undefined') {
+                yield signtool.sign(outputTmpUninstallerExePath, this.config.signOptions);
+            }
+            // remove the temp installer
+            fs_1.default.unlinkSync(outputTmpInstallerExePath);
+            // generate the real installer
+            output = yield NSIS.compile(templateTempPath, nsisOptions);
             if (output.status !== 0) {
                 console.log(output.stdout);
                 throw "Error compiling NSIS!";
             }
             fs_1.default.unlinkSync(templateTempPath);
-            // Sign the installer
+            // Optional: Sign the installer
             if (typeof this.config.signOptions !== 'undefined') {
                 yield signtool.sign(outputExePath, this.config.signOptions);
             }
