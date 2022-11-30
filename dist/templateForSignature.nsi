@@ -30,6 +30,7 @@ FunctionEnd
 ;Documentation: https://nsis.sourceforge.io/Docs/Modern%20UI/Readme.html
 
   CRCCheck On
+  BrandingText "${BRANDING_TEXT}"
 
 ;--------------------------------
 ;Include Modern UI
