@@ -3,8 +3,9 @@ import { ForgePlatform } from '@electron-forge/shared-types';
 import * as signtool from 'signtool';
 export declare type MakerNSISConfig = {
     name: string;
+    template?: string;
     nsisOptions: NsisOptions;
-    signOptions: signtool.SignOptions | undefined;
+    signOptions?: signtool.SignOptions;
     signIncludedExecutables: boolean;
 };
 export declare type NsisOptions = {

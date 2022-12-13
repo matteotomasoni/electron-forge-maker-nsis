@@ -11,8 +11,9 @@ import { execSync } from 'child_process';
 
 export type MakerNSISConfig = {
   name:string,
+  template?:string,
   nsisOptions:NsisOptions,
-  signOptions:signtool.SignOptions|undefined,
+  signOptions?:signtool.SignOptions,
   signIncludedExecutables:boolean,
 };
 
@@ -50,7 +51,6 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     const outputTmpInstallerExePath = path.resolve(makeDir, 'nsis', 'TempInstaller.exe');
     const outputTmpUninstallerExePath = path.resolve(makeDir, 'nsis', 'Uninstall.exe');
     const templateName = 'templateForSignature.nsi'
-    const originalTemplatePath = path.resolve(__dirname, templateName)
     const templateTempPath = path.resolve(dir, templateName)
 
     const nsisOptionsDefine : Define = {
@@ -69,6 +69,8 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
       define: nsisOptionsDefine,
     };
     await this.ensureFile(outputExePath);
+    
+    const originalTemplatePath = this.config.template || path.resolve(__dirname, templateName)
 
     fs.copyFileSync(originalTemplatePath, templateTempPath)
 

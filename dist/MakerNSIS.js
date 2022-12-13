@@ -64,11 +64,11 @@ class MakerNSIS extends maker_base_1.default {
             const outputTmpInstallerExePath = path_1.default.resolve(makeDir, 'nsis', 'TempInstaller.exe');
             const outputTmpUninstallerExePath = path_1.default.resolve(makeDir, 'nsis', 'Uninstall.exe');
             const templateName = 'templateForSignature.nsi';
-            const originalTemplatePath = path_1.default.resolve(__dirname, templateName);
             const templateTempPath = path_1.default.resolve(dir, templateName);
             const nsisOptionsDefine = Object.assign(Object.assign({ EXECUTION_LEVEL: 'admin' }, this.config.nsisOptions.define), { MUI_PRODUCT: appName, MUI_FILE: outputExePath, MUI_VERSION: packageJSON.version, MUI_AUTHOR: packageJSON.author.name || packageJSON.author, TMP_INSTALLER_FILE: outputTmpInstallerExePath, TMP_UNINSTALLER_FILE: outputTmpUninstallerExePath });
             const nsisOptions = Object.assign(Object.assign({}, this.config.nsisOptions), { define: nsisOptionsDefine });
             yield this.ensureFile(outputExePath);
+            const originalTemplatePath = this.config.template || path_1.default.resolve(__dirname, templateName);
             fs_1.default.copyFileSync(originalTemplatePath, templateTempPath);
             // Sign all the included executables
             if (typeof this.config.signOptions !== 'undefined' && this.config.signIncludedExecutables === true) {
