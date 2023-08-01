@@ -101,6 +101,8 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     let output = await NSIS.compile(templateTempPath, nsisUninstallerOptions)
     if(output.status !== 0) {
       console.log(output.stdout)
+      console.warn(output.warnings)
+      console.error(output.stderr)
       throw "Error compiling uninstaller NSIS!"
     }
 
@@ -124,6 +126,8 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     output = await NSIS.compile(templateTempPath, nsisOptions)
     if(output.status !== 0) {
       console.log(output.stdout)
+      console.warn(output.warnings)
+      console.error(output.stderr)
       throw "Error compiling NSIS!"
     }
 

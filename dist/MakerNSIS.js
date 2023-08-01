@@ -105,6 +105,8 @@ class MakerNSIS extends maker_base_1.default {
             let output = yield NSIS.compile(templateTempPath, nsisUninstallerOptions);
             if (output.status !== 0) {
                 console.log(output.stdout);
+                console.warn(output.warnings);
+                console.error(output.stderr);
                 throw "Error compiling uninstaller NSIS!";
             }
             // run the temp installer
@@ -124,6 +126,8 @@ class MakerNSIS extends maker_base_1.default {
             output = yield NSIS.compile(templateTempPath, nsisOptions);
             if (output.status !== 0) {
                 console.log(output.stdout);
+                console.warn(output.warnings);
+                console.error(output.stderr);
                 throw "Error compiling NSIS!";
             }
             fs_1.default.unlinkSync(templateTempPath);
