@@ -100,14 +100,15 @@ class MakerNSIS extends maker_base_1.default {
             // generate the uninstaller
             const nsisUninstallerOptions = JSON.parse(JSON.stringify(nsisOptions));
             nsisUninstallerOptions.define.INNER = "1";
+            const spawnOptions = {};
             // This writes a temp installer for us which, when
             // it is invoked, will just write the uninstaller to some location, and then exit.
-            let output = yield NSIS.compile(templateTempPath, nsisUninstallerOptions);
+            let output = yield NSIS.compile(templateTempPath, nsisUninstallerOptions, spawnOptions);
             if (output.status !== 0) {
                 console.log(output.stdout);
                 console.warn(output.warnings);
                 console.error(output.stderr);
-                throw "Error compiling uninstaller NSIS!";
+                throw new Error(`Error compiling NSIS for uninstaller: ${output.status} ${output.stderr}`);
             }
             // run the temp installer
             try {
@@ -123,12 +124,12 @@ class MakerNSIS extends maker_base_1.default {
             // remove the temp installer
             fs_1.default.unlinkSync(outputTmpInstallerExePath);
             // generate the real installer
-            output = yield NSIS.compile(templateTempPath, nsisOptions);
+            output = yield NSIS.compile(templateTempPath, nsisOptions, spawnOptions);
             if (output.status !== 0) {
                 console.log(output.stdout);
                 console.warn(output.warnings);
                 console.error(output.stderr);
-                throw "Error compiling NSIS!";
+                throw new Error(`Error compiling NSIS for installer: ${output.status} ${output.stderr}`);
             }
             fs_1.default.unlinkSync(templateTempPath);
             // Optional: Sign the installer

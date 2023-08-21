@@ -8,6 +8,7 @@ import * as NSIS from 'makensis';
 import * as signtool from 'signtool';
 import readdirp from 'readdirp';
 import { execSync } from 'child_process';
+import type { SpawnOptions } from 'node:child_process';
 
 export type MakerNSISConfig = {
   name:string,
@@ -93,17 +94,19 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     }
 
     // generate the uninstaller
-    const nsisUninstallerOptions : NsisOptions = JSON.parse(JSON.stringify(nsisOptions))
+    const nsisUninstallerOptions : NSIS.CompilerOptions = JSON.parse(JSON.stringify(nsisOptions))
     nsisUninstallerOptions.define.INNER = "1"
+
+    const spawnOptions : SpawnOptions = {}
 
     // This writes a temp installer for us which, when
     // it is invoked, will just write the uninstaller to some location, and then exit.
-    let output = await NSIS.compile(templateTempPath, nsisUninstallerOptions)
+    let output = await NSIS.compile(templateTempPath, nsisUninstallerOptions, spawnOptions)
     if(output.status !== 0) {
       console.log(output.stdout)
       console.warn(output.warnings)
       console.error(output.stderr)
-      throw "Error compiling uninstaller NSIS!"
+      throw new Error(`Error compiling NSIS for uninstaller: ${output.status} ${output.stderr}`)
     }
 
     // run the temp installer
@@ -123,12 +126,12 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     fs.unlinkSync(outputTmpInstallerExePath)
 
     // generate the real installer
-    output = await NSIS.compile(templateTempPath, nsisOptions)
+    output = await NSIS.compile(templateTempPath, nsisOptions, spawnOptions)
     if(output.status !== 0) {
       console.log(output.stdout)
       console.warn(output.warnings)
       console.error(output.stderr)
-      throw "Error compiling NSIS!"
+      throw new Error(`Error compiling NSIS for installer: ${output.status} ${output.stderr}`)
     }
 
     fs.unlinkSync(templateTempPath)
