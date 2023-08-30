@@ -123,6 +123,7 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     }
 
     // remove the temp installer
+    await new Promise(resolve => setTimeout(resolve, 5000)) // on slow systems the file was still in use when trying to delete it
     fs.unlinkSync(outputTmpInstallerExePath)
 
     // generate the real installer
@@ -134,6 +135,7 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
       throw new Error(`Error compiling NSIS for installer: ${output.status} ${output.stderr}`)
     }
 
+    await new Promise(resolve => setTimeout(resolve, 5000))
     fs.unlinkSync(templateTempPath)
 
     // Optional: Sign the installer

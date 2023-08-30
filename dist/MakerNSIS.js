@@ -122,6 +122,7 @@ class MakerNSIS extends maker_base_1.default {
                 yield signtool.sign(outputTmpUninstallerExePath, this.config.signOptions);
             }
             // remove the temp installer
+            yield new Promise(resolve => setTimeout(resolve, 5000)); // on slow systems the file was still in use when trying to delete it
             fs_1.default.unlinkSync(outputTmpInstallerExePath);
             // generate the real installer
             output = yield NSIS.compile(templateTempPath, nsisOptions, spawnOptions);
@@ -131,6 +132,7 @@ class MakerNSIS extends maker_base_1.default {
                 console.error(output.stderr);
                 throw new Error(`Error compiling NSIS for installer: ${output.status} ${output.stderr}`);
             }
+            yield new Promise(resolve => setTimeout(resolve, 5000));
             fs_1.default.unlinkSync(templateTempPath);
             // Optional: Sign the installer
             if (typeof this.config.signOptions !== 'undefined') {
