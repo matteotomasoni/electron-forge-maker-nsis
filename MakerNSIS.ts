@@ -8,9 +8,9 @@ import * as NSIS from 'makensis';
 import * as signtool from 'signtool';
 import readdirp from 'readdirp';
 import { execSync } from 'child_process';
-import type { SpawnOptions } from 'node:child_process';
+// import type { SpawnOptions } from 'node:child_process';
 
-export type MakerNSISConfig = {
+type MakerNSISConfig = {
   name:string,
   template?:string,
   nsisOptions:NsisOptions,
@@ -18,12 +18,12 @@ export type MakerNSISConfig = {
   signIncludedExecutables:boolean,
 };
 
-export type NsisOptions = {
+type NsisOptions = {
   define:Define,
 };
 
 // just a collection of definitions, like a Map of strings
-export type Define = {
+type Define = {
   [key:string]:string,
 };
 
@@ -44,7 +44,7 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     packageJSON,
     targetArch,
     targetPlatform,
-  }: MakerOptions) {
+  }: MakerOptions): Promise<string[]> {
 
     const isUser = this.config.nsisOptions.define.EXECUTION_LEVEL == 'user' || false
     const exeName = this.config.name || `${appName}-${packageJSON.version}-${isUser ? 'User' : 'Admin'}Setup.exe`
@@ -97,7 +97,7 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     const nsisUninstallerOptions : NSIS.CompilerOptions = JSON.parse(JSON.stringify(nsisOptions))
     nsisUninstallerOptions.define.INNER = "1"
 
-    const spawnOptions : SpawnOptions = {}
+    const spawnOptions = {}
 
     // This writes a temp installer for us which, when
     // it is invoked, will just write the uninstaller to some location, and then exit.
@@ -123,8 +123,8 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     }
 
     // remove the temp installer
-    await new Promise(resolve => setTimeout(resolve, 5000)) // on slow systems the file was still in use when trying to delete it
-    fs.unlinkSync(outputTmpInstallerExePath)
+    // await new Promise(resolve => setTimeout(resolve, 5000)) // on slow systems the file was still in use when trying to delete it
+    await fs.unlink(outputTmpInstallerExePath, () => {})
 
     // generate the real installer
     output = await NSIS.compile(templateTempPath, nsisOptions, spawnOptions)
@@ -146,3 +146,5 @@ export default class MakerNSIS extends MakerBase<MakerNSISConfig> {
     return [outputExePath];
   }
 }
+
+export { MakerNSIS, MakerNSISConfig };

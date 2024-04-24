@@ -38,6 +38,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MakerNSIS = void 0;
 const maker_base_1 = __importDefault(require("@electron-forge/maker-base"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
@@ -122,8 +123,8 @@ class MakerNSIS extends maker_base_1.default {
                 yield signtool.sign(outputTmpUninstallerExePath, this.config.signOptions);
             }
             // remove the temp installer
-            yield new Promise(resolve => setTimeout(resolve, 5000)); // on slow systems the file was still in use when trying to delete it
-            fs_1.default.unlinkSync(outputTmpInstallerExePath);
+            // await new Promise(resolve => setTimeout(resolve, 5000)) // on slow systems the file was still in use when trying to delete it
+            yield fs_1.default.unlink(outputTmpInstallerExePath, () => { });
             // generate the real installer
             output = yield NSIS.compile(templateTempPath, nsisOptions, spawnOptions);
             if (output.status !== 0) {
@@ -143,4 +144,5 @@ class MakerNSIS extends maker_base_1.default {
     }
 }
 exports.default = MakerNSIS;
+exports.MakerNSIS = MakerNSIS;
 //# sourceMappingURL=MakerNSIS.js.map
