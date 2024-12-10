@@ -1,6 +1,6 @@
 {
   "name": "electron-forge-maker-nsis",
-  "version": "7.4.0",
+  "version": "7.6.0",
   "description": "NSIS maker for Electron Forge",
   "author": "Matteo Tomasoni",
   "license": "MIT",
@@ -15,12 +15,13 @@
     "node": ">= 16.4.0"
   },
   "dependencies": {
-    "@electron-forge/maker-base": "7.4.0",
-    "@electron-forge/shared-types": "7.4.0",
-    "fs-extra": "^10.0.0",
-    "makensis": "^1.1.8",
+    "@electron-forge/maker-base": "7.6.0",
+    "@electron-forge/shared-types": "7.6.0",
+    "fs-extra": "^11.2.0",
+    "makensis": "^2.0.8",
     "path": "^0.12.7",
-    "readdirp": "^3.6.0",
+    "readdirp": "^4.0.2",
+    "rxjs": "^7.8.1",
     "signtool": "^1.0.0"
   },
   "files": [

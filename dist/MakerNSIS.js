@@ -45,7 +45,7 @@ const fs_1 = __importDefault(require("fs"));
 // @ts-ignore
 const NSIS = __importStar(require("makensis"));
 const signtool = __importStar(require("signtool"));
-const readdirp_1 = __importDefault(require("readdirp"));
+const readdirp_1 = require("readdirp");
 const child_process_1 = require("child_process");
 class MakerNSIS extends maker_base_1.default {
     constructor() {
@@ -74,19 +74,19 @@ class MakerNSIS extends maker_base_1.default {
             // Sign all the included executables
             if (typeof this.config.signOptions !== 'undefined' && this.config.signIncludedExecutables === true) {
                 const readdirpOptions = {
-                    fileFilter: ["*.exe", "*.dll"],
+                    fileFilter: (_path) => _path.basename.endsWith(".exe") || _path.basename.endsWith(".dll"),
                     depth: 10,
                 };
-                const files = yield readdirp_1.default.promise(dir, readdirpOptions);
+                const files = yield readdirp_1.readdirpPromise(dir, readdirpOptions);
                 try {
                     for (var files_1 = __asyncValues(files), files_1_1; files_1_1 = yield files_1.next(), !files_1_1.done;) {
                         const item = files_1_1.value;
                         // If the verify fails, we sign the file
                         try {
-                            yield signtool.verify(item.fullPath, { defaultAuthPolicy: true });
+                            yield signtool.verify(item, { defaultAuthPolicy: true });
                         }
                         catch (err) {
-                            yield signtool.sign(item.fullPath, this.config.signOptions);
+                            yield signtool.sign(item, this.config.signOptions);
                         }
                     }
                 }
@@ -100,6 +100,9 @@ class MakerNSIS extends maker_base_1.default {
             }
             // generate the uninstaller
             const nsisUninstallerOptions = JSON.parse(JSON.stringify(nsisOptions));
+            if (!nsisUninstallerOptions.define) {
+                nsisUninstallerOptions.define = {};
+            }
             nsisUninstallerOptions.define.INNER = "1";
             const spawnOptions = {};
             // This writes a temp installer for us which, when
